@@ -1,0 +1,163 @@
+<!-- Ant makefile for the Micro-Manager for Windows distribution -->
+<!-- This file assumes Micro-Manager project tree structure      -->
+
+<project name="mmstudio" default="build">
+	<description>
+		Java main source code for micro-manager. 
+	</description>
+
+	<property name="build.dir" value="build" />
+	<property name="src.dir" value="src" />
+	<property name="dist.dir" value="../Distribution" />
+	<property name="target.name" value="MMJ_" />
+	<property name="user.name" value="Zephyre" />
+	<property name="mmplugin_dist.dir" value="${dist.dir}/plugins/Micro-Manager" />
+	<property name="devices.dir" value="devices" />
+
+	<path id="project.class.path">
+		<pathelement location="${dist.dir}/ij.jar" />
+		<pathelement location="./lib/MMCoreJ.jar" />
+		<pathelement location="./lib/bsh-2.0b4.jar" />
+		<pathelement location="./lib/commons-math-2.0.jar" />
+		<pathelement location="./lib/swing-layout-1.0.4.jar" />
+		<pathelement location="./lib/swingx-0.9.5.jar" />
+	</path>
+
+	<!-- Specify version in the installer name -->
+	<property name="InstallerName" value="MMSetup_" />
+
+	<!-- Specify the compiler
+	<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+	-->
+
+	<!-- Specify the system paths -->
+	<property name="InstallRoot" value="../Install_Win32/micro-manager" />
+	<property name="NativeRoot" value="../MMCoreJ_wrap" />
+	<property name="ScriptsRoot" value="../scripts" />
+	<property name="ScriptsInstall" value="../Install_Win32/micro-manager/scripts" />
+	<property name="DriversRoot" value="../drivers" />
+	<property name="DriversInstall" value="../Install_Win32/micro-manager/drivers" />
+	<property name="AdaptersRoot" value="../DeviceAdapters" />
+
+	<!-- Do not modify from this point on -->
+	<property name="IJ" value="../../3rdpartypublic/classext/ij.jar" />
+	<property name="beanshell" value="../../3rdpartypublic/classext/bsh-2.0b4.jar" />
+	<property name="swingx" value="../../3rdpartypublic/classext/swingx-0.9.5.jar" />
+	<property name="swing_layout" value="../../3rdpartypublic/classext/swing-layout-1.0.4.jar" />
+	<property name="commons_math" value="../../3rdpartypublic/classext/commons-math-2.0.jar" />
+	<property name="clojure" value="../../3rdpartypublic/classext/clojure.jar" />
+	<property name="clooj" value="../../3rdpartypublic/classext/clooj.jar" />
+	<property name="IJLauncher" value="../../3rdpartypublic/JavaLauncher/ImageJ.exe" />
+	<property name="MMCoreJ" value="../bin_Win32/MMCoreJ.jar" />
+	<property name="MMPluginDir-inst" value="${InstallRoot}/plugins/Micro-Manager" />
+	<property name="BinRoot" value="../bin_Win32" />
+
+	<path id="project.MMPlugins.path">
+		<pathelement location="${MMPluginDir}" />
+	</path>
+
+	<!--
+	<path id="project.class.path">
+		<pathelement location="${IJ}" />
+		<pathelement location="${beanshell}" />
+		<pathelement location="${swingx}" />
+		<pathelement location="${MMCoreJ}" />
+		<pathelement location="${swing_layout}" />
+		<pathelement location="${commons_math}" />
+		<pathelement location="${clojure}" />
+	</path>
+	-->
+
+	<target description="Creates necessary directories" name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dist.dir}/plugins/Micro-Manager" />
+	</target>
+
+	<target name="compile" depends="init" description="Compile MM Studio.">
+		<javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}" optimize="on" debug="on">
+			<classpath refid="project.class.path" />
+			<!-- <compilerarg value="-Xlint"/> -->
+		</javac>
+		<copy file="${src.dir}/org/micromanager/icons/splash.gif" todir="${build.dir}/org/micromanager/icons" />
+		<copy todir="${build.dir}/org/micromanager/icons">
+			<fileset dir="${src.dir}/org/micromanager/icons" casesensitive="no">
+				<include name="**/*.png" />
+				<include name="**/*.gif" />
+			</fileset>
+		</copy>
+		<copy todir="${build.dir}/org/micromanager/conf">
+			<fileset dir="${src.dir}/org/micromanager/conf" casesensitive="no">
+				<include name="**/*.html" />
+			</fileset>
+		</copy>
+		<copy todir="${build.dir}/org/micromanager/conf2">
+			<fileset dir="${src.dir}/org/micromanager/conf2" casesensitive="no">
+				<include name="**/*.html" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="build" depends="compile" description="Build MMJ_.jar">
+		<copy file="plugins.config" tofile="${build.dir}/plugins.config" overwrite="true" verbose="true" />
+		<!-- Build MMJ_.jar. -->
+		<jar jarfile="MMJ_.jar" basedir="build" manifest="${src.dir}/MANIFEST.MF">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+			</manifest>
+		</jar>
+	</target>
+
+
+	<target name="buildMMReader" description="Build MMReader_.jar">
+		<copy file="./bin/plugins_reader.config" tofile="./build/plugins.config" overwrite="true" verbose="true" />
+		<jar jarfile="MMReader_.jar" basedir="build" manifest="./src/MANIFEST.MF" />
+	</target>
+
+	<target name="clean" description="Delete the MMStudio build files.">
+		<delete dir="${build.dir}" />
+		<delete file="MMJ_.jar" />
+		<delete file="MMReader_.jar" />
+	</target>
+
+	<target name="install" depends="build" description="Create installation image">
+		<!-- always clean the device adapters from install image -->
+		<delete>
+			<fileset dir="${dist.dir}">
+				<include name="**/mmgr_dal_*.dll" />
+			</fileset>
+		</delete>
+
+		<copy todir="${mmplugin_dist.dir}" preservelastmodified="true">
+			<fileset dir="./lib" casesensitive="no">
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+		<copy file="MMJ_.jar" todir="${mmplugin_dist.dir}" preservelastmodified="true" />
+		
+		<copy todir="${dist.dir}" preservelastmodified="true">
+			<fileset dir="./devices" casesensitive="no">
+				<include name="mmgr_dal_*.dll" />
+			</fileset>
+			<fileset dir="./" casesensitive="no">
+				<include name="MMCoreJ_wrap.dll" />
+				<include name="*.cfg" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="makeDeviceList" description="Run DeviceListBuilder to generate MMDeviceList.txt">
+		<exec dir="${dist.dir}" executable="java">
+			<arg line="-cp plugins\Micro-Manager\MMJ_.jar;plugins\Micro-Manager\MMCoreJ.jar DeviceListBuilder NotdeviceDiscoveryEnabled" />
+		</exec>
+		<exec dir="${dist.dir}" executable="java">
+			<arg line="-cp plugins\Micro-Manager\MMJ_.jar;plugins\Micro-Manager\MMCoreJ.jar DeviceListBuilder deviceDiscoveryEnabled" />
+		</exec>
+	</target>
+
+	<target name="packInstaller" description="Create installation package">
+		<exec dir="${InstallRoot}" executable="/projects/3rdparty/Inno_Setup_5/iscc.exe">
+			<arg line="/F${InstallerName} ../MM-ImageJ-Install32.iss" />
+		</exec>
+	</target>
+
+</project>

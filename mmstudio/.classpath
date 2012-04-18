@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="build" path="src"/>
+	<classpathentry kind="var" path="JRE_LIB" rootpath="JRE_SRCROOT" sourcepath="JRE_SRC"/>
+	<classpathentry kind="lib" path="D:/Users/Zephyre/Development/ImageJ/Distribution/ij.jar"/>
+	<classpathentry kind="lib" path="D:/Users/Zephyre/Development/ImageJ/mmstudio/lib/MMCoreJ.jar"/>
+	<classpathentry kind="lib" path="D:/Users/Zephyre/Development/ImageJ/mmstudio/lib/bsh-2.0b4.jar"/>
+	<classpathentry kind="lib" path="D:/Users/Zephyre/Development/ImageJ/mmstudio/lib/commons-math-2.0.jar"/>
+	<classpathentry kind="lib" path="D:/Users/Zephyre/Development/ImageJ/mmstudio/lib/swing-layout-1.0.4.jar"/>
+	<classpathentry kind="lib" path="D:/Users/Zephyre/Development/ImageJ/mmstudio/lib/swingx-0.9.5.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
