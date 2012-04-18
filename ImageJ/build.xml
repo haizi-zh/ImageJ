@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ImageJ" default="build" basedir=".">
+	<!-- All the final bin output will be placed into this directory. -->
+	<property name="InstallRoot" value="../Build" />
+	<property name="user.name" value="Zephyre" />
+	<property name="build.dir" value="build" />
+	<property name="src.dir" value="src" />
+	<property name="dist.dir" value="../Distribution" />
+
+	<path id="project.class.path">
+		<pathelement location="${basedir}/lib/tools.jar" />
+	</path>
+
+	<target description="Creates necessary directories" name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${dist.dir}/macros" />
+		<mkdir dir="${dist.dir}/plugins" />
+	</target>
+
+	<target name="compile" depends="init" description="Compile everything.">
+		<!-- Build everything; add debug="on" to debug -->
+		<!-- The plugins directory only needs to be 
+		             present at runtime, not at build time. -->
+		<javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}" optimize="on" debug="on">
+			<exclude name="plugins/**" />
+			<classpath refid="project.class.path" />
+		</javac>
+	</target>
+
+	<target name="build" depends="compile" description="Build ij.jar.">
+		<!-- Copy needed files into the build directory. -->
+		<copy todir="${build.dir}">
+			<fileset dir="." includes="IJ_Props.txt" />
+			<fileset dir="./images" includes="*.*" />
+			<fileset dir="./plugins" includes="*.class" />
+			<fileset dir="." includes="macros/**" />
+		</copy>
+
+		<!-- Build ij.jar. -->
+		<jar jarfile="ij.jar" basedir="build" manifest="MANIFEST.MF">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+			</manifest>
+		</jar>
+
+		<copy todir="${dist.dir}">
+			<fileset dir="." includes="ij.jar" />
+			<fileset dir="." includes="ImageJ.cfg" />
+			<fileset dir="." includes="ImageJ.exe" />
+			<fileset dir="." includes="IJ_Props.txt" />
+			<fileset dir="." includes="luts/**" />
+		</copy>
+		<copy todir="${dist.dir}/macros">
+			<fileset dir="macros_install" />
+		</copy>
+		<copy todir="${dist.dir}/plugins">
+			<fileset dir="plugins_install" />
+		</copy>
+	</target>
+
+	<target name="clean" description="Delete the build files.">
+		<delete dir="build" />
+		<delete file="ij.jar" />
+	</target>
+
+
+	<target name="run" depends="build" description="Build and run ImageJ.">
+		<copy file="ij.jar" toDir=".." />
+		<java maxmemory="640m" jar="ij.jar" fork="yes" />
+	</target>
+
+
+	<target name="run2" depends="build" description="Build and run ImageJ.">
+		<!-- Run in ImageJ directory -->
+		<copy file="ij.jar" toDir=".." />
+		<java maxmemory="640m" dir=".." jar="ij.jar" fork="yes" />
+	</target>
+
+	<target name="zip" depends="clean" description="Build zrc.zip.">
+		<zip zipfile="../src.zip" basedir=".." includes="source/**" />
+	</target>
+
+
+	<target name="javadocs" description="Build the JavaDocs.">
+		<delete dir="../api" />
+		<mkdir dir="../api" />
+		<javadoc sourcepath="." packagenames="ij.*" destdir="../api" author="true" version="true" use="true" windowtitle="ImageJ API">
+		</javadoc>
+	</target>
+
+
+</project>
+
